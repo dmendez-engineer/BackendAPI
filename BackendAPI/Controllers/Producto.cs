@@ -49,11 +49,109 @@ namespace BackendAPI.Controllers
                     }
 
                 }
+                conn.Close();
             }
             
             return response;
         }
+        //[sp_DeleteProduct]
+        [HttpDelete("deleteProduct/{id}")]
+        public async Task<TransaccionEntidad>DeleteProduct(int id)
+        {
+            TransaccionEntidad response = new TransaccionEntidad();
+            using(var conn= new SqlConnection(UI.cadenaSql))
+            {
+                using(SqlCommand cmd= new SqlCommand("dbo.sp_DeleteProduct", conn))
+                {
+                    conn.Open();
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+                    SqlParameter output= new SqlParameter("@response", SqlDbType.Int);
+                    output.Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add(output);
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        response.success = Convert.ToInt32(cmd.Parameters["@response"].Value);
+                        response.mensaje = "The product was deleted";
+                    }catch(SqlException ex)
+                    {
+                        response.success = 404;
+                        response.mensaje = "There was an error while deleting this producto";
 
+                    }
+
+                    conn.Close();
+                }
+            }
+            return response;
+        }
+        [HttpPut("putProducto/{id}")]
+        public async Task<TransaccionEntidad> PutProducto(int id,ProductoEntity p)
+        {
+            TransaccionEntidad response = new TransaccionEntidad();
+
+            using(var conn= new SqlConnection(UI.cadenaSql))
+            {
+                using(SqlCommand cmd = new SqlCommand("dbo.sp_updateProduct", conn))
+                {
+                    conn.Open();
+
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@id", System.Data.SqlDbType.Int, 100).Value = id;
+                    cmd.Parameters.Add("@name", System.Data.SqlDbType.VarChar, 100).Value = p.Nombre;
+                    cmd.Parameters.Add("@price", System.Data.SqlDbType.Int, 100).Value = p.Precio;
+                    cmd.Parameters.Add("@description", System.Data.SqlDbType.VarChar, 100).Value = p.Descripcion;
+                    SqlParameter output = new SqlParameter("@response", SqlDbType.Int);
+                    output.Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add(output);
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        response.success = Convert.ToInt32(cmd.Parameters["@response"].Value);
+                        response.mensaje = "The produc was updated succesfully";
+                    }catch(SqlException ex)
+                    {
+                        response.success = 404;
+                        response.mensaje = "There was error in the updating of this product";
+                    }
+
+                    conn.Close();
+                }
+            }    
+
+            return response;
+        }
+
+        [HttpGet("getOneProducto/{id}")]
+        public ProductoEntity GetOneProduct(int id)
+        {
+            var response = new ProductoEntity();
+            response.Id = 0;
+
+            using(var conn= new SqlConnection(UI.cadenaSql))
+            {
+                using(SqlCommand cmd = new SqlCommand("dbo.getOneProduct", conn))
+                {
+                    conn.Open();
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+                    var adaptador = new SqlDataAdapter(cmd);
+                    var reader = adaptador.SelectCommand.ExecuteReader();
+                    while(reader.Read())
+                    {
+                        response.Id = Int32.Parse(reader.GetInt32(0).ToString());
+                        response.Nombre = reader.GetString(1);
+                        response.Precio=reader.GetDecimal(2);
+                        response.Descripcion = reader.GetString(3);
+                    }
+                    conn.Close();
+                }
+            }
+
+            return response;
+        }
         [HttpGet("getProducts")]
     public Collection<ProductoEntity>GetProductoEntities()
         {
@@ -76,7 +174,7 @@ namespace BackendAPI.Controllers
                         oProducto.Descripcion=reader.GetString(3);
                         lista.Add(oProducto);
                     }
-                
+                    conn.Close();
                     }
             }
 
