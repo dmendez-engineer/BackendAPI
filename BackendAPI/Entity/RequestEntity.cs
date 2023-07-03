@@ -7,6 +7,7 @@
         public int Cantidad { get;set; }
         public Decimal Total { get; set; }
         public DateTime FechaPedido { get; set; }
+        public Decimal Unit_Price { get; set; }
 
         public RequestEntity()
         {

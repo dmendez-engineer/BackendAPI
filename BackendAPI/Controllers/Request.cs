@@ -35,6 +35,7 @@ namespace BackendAPI.Controllers
                         r.Cantidad = reader.GetInt32(2);
                         r.Total = reader.GetDecimal(3);
                         r.FechaPedido = reader.GetDateTime(4);
+                        r.Unit_Price=reader.GetDecimal(5);
                         response.Add(r);
                     }
 
@@ -88,7 +89,7 @@ namespace BackendAPI.Controllers
                          for(int i = 0; i < pedido.LineaPedido.Count; i++)
                         {
                         
-                        SqlCommand cmd2 = new SqlCommand("dbo.postRequestLine", conn);
+                            SqlCommand cmd2 = new SqlCommand("dbo.postRequestLine", conn);
                             cmd2.CommandType = System.Data.CommandType.StoredProcedure;
                         
                             cmd2.Parameters.Add("@idRequest", System.Data.SqlDbType.Int).Value = lastIndex;
